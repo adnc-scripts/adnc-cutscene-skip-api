@@ -115,13 +115,14 @@ namespace Adnc.Cutscene
 			StopCoroutine ("ShowUIText");
 
 			Text text = GetComponent<Text> ();
-			float currentTime = 0;
+			float currentTime = 0f;
 
 			while (text.color.a > 0f) 
 			{
+
 				currentTime += Time.deltaTime;
 
-				float alpha = Mathf.Lerp(1f, 0f, 1f * currentTime/3f);
+				float alpha = Mathf.Lerp(1f, 0f, 1f * currentTime);
 				text.color = new Color(text.color.r, text.color.g, text.color.b, alpha);
 				yield return new WaitForEndOfFrame();
 				
@@ -131,11 +132,10 @@ namespace Adnc.Cutscene
 
 		}
 
-        //delete after testing
         public void Start()
         {	
 			skipActionCode = (KeyCode)System.Enum.Parse (typeof(KeyCode), skipAction);
-            BeginMonitor();
+			BeginMonitor(); //delete after testing
         }
 
     }
