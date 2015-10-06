@@ -156,11 +156,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c48a0cc28a7d1234a8f2c921ed59bfe3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  debug: 0
   displayTime: 3
   skipAction: A
-  canvas: {fileID: 109134}
-  text: {fileID: 170388}
+  container: {fileID: 109134}
+  animGraphic: {fileID: 9541670}
 --- !u!222 &22221792
 CanvasRenderer:
   m_ObjectHideFlags: 1
