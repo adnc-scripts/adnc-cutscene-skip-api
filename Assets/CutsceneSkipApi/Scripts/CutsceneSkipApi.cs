@@ -1,17 +1,16 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityEngine.UI;
 
 namespace Adnc.Cutscene {
 
     public class CutsceneSkipApi : MonoBehaviour {
-
-        bool debug = false;
         bool _skipCutscene = false;
+		public bool SkipCutscene {
+			get { return _skipCutscene; }
+		}
 
         [SerializeField, Range(1.0f, 5.0f), Tooltip("How long the graphic will display after initially pressing a button.")]
         float displayTime = 3f;
-
 
         [SerializeField, Tooltip("The key to monitor for to skip a cutscene.")]
         string skipAction;
@@ -20,34 +19,37 @@ namespace Adnc.Cutscene {
         [SerializeField, Tooltip("The canvas used to contain the skip graphic.")]
         GameObject container;
 
+		[Header("Animated Graphic")]
+
         [SerializeField, Tooltip("Reference to the Animator placed on the skip graphic.")]
         Animator animGraphic;
 
-        /* BEGIN Example area for the animator. This is good to have in-case something is altered with the animator's functionality
-        [Header("Animated Graphic")]
-        [SerializeField] Animator animGraphic;
-        [SerializeField] List<string> resetTriggers;
-        [SerializeField] string defaultState;
-        END Example */
+		[SerializeField, Tooltip("Default starting state when reset")]
+		string animStartState = "Idle";
 
-        public bool SkipCutscene {
-            get { return _skipCutscene; }
-        }
+		[Header("Debugging")]
+
+		[SerializeField, Tooltip("Adds additional log details")] 
+		bool debug = false;
+
+		[SerializeField, Tooltip("Will automatically activate the cutscene skip API when the game starts")] 
+		bool autoStart = false;
 
         public void Awake() {
             skipActionCode = (KeyCode)System.Enum.Parse(typeof(KeyCode), skipAction);
 
-            // @REVIEW I would add a bool kind of like debug that auto starts this up (ex. bool forceStart), then you don't need to delete this later
-            BeginMonitor(); //@TODO delete after testing
+            if (autoStart) BeginMonitor();
         }
 
         //At the start of a cutscene, run this script to begin monitoring for button pressing
         public void BeginMonitor() {
             if (debug) Debug.LogFormat("{0} triggered BeginMonitor", name);
 
-            animGraphic.SetTrigger("Idle");
+			AnimatorExt.SetAllTriggers(animGraphic, false);
+            animGraphic.Play(animStartState);
 
             container.SetActive(true);
+            StopAllCoroutines();
             StartCoroutine("LoopMonitor");
         }
 
@@ -59,6 +61,7 @@ namespace Adnc.Cutscene {
         }
 
         IEnumerator LoopMonitor() {
+			float timer;
 
             if (debug) Debug.LogFormat("{0} triggered LoopMonitor", name);
 
@@ -66,13 +69,14 @@ namespace Adnc.Cutscene {
             //The only way to exit this loop is to run EndMonitor, found in the second while loop
             while (true) {
 
+				// Constantly prevents advancing logic unless a button press is detected
                 while (!Input.anyKey) yield return null;
 
                 if (debug) Debug.LogFormat("A key or mouse click has been detected. Press '{0}' to stop the monitor.", skipAction);
                 animGraphic.SetTrigger("Show");
 
                 yield return null;
-                float timer = displayTime;
+                timer = displayTime;
 
                 while (timer > 0) {
 
@@ -85,7 +89,9 @@ namespace Adnc.Cutscene {
                         _skipCutscene = false;
 
                         EndMonitor();
-                    }
+					} else if (Input.anyKey) {
+						timer = displayTime;
+					}
 
                     timer -= Time.deltaTime;
                     yield return null;
